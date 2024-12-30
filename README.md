@@ -12,9 +12,9 @@
 
 ## 安装&配置
 1、通过composer安装:
-
-    "composer require sogajoy/ali-oss-storage:^2.4"
-    
+```php
+    composer require sogajoy/ali-oss-storage:^2.4
+```
 2、在 config/app.php 文件中加入如下配置：
 ```php
 Sogajoy\AliOss\OssServiceProvider::class,

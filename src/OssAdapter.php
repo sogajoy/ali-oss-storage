@@ -566,6 +566,16 @@ class OssAdapter extends AbstractAdapter
     }
 
     /**
+     * @param string $path
+     * @param int $timeout
+     *
+     * @return string
+     */
+    public function getTemporaryUrl($path,$timeout=3600){
+        return $this->client->signUrl($this->bucket, $this->applyPathPrefix($path), $timeout);
+    }
+
+    /**
      * The the ACL visibility.
      *
      * @param string $path

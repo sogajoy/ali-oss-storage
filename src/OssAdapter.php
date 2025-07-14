@@ -572,6 +572,7 @@ class OssAdapter extends AbstractAdapter
      * @return string
      */
     public function getTemporaryUrl($path,$timeout=3600){
+        if (!$this->has($path)) throw new FileNotFoundException($filePath.' not found');
         return $this->client->signUrl($this->bucket, $this->applyPathPrefix($path), $timeout);
     }
 

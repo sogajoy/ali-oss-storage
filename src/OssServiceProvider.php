@@ -36,14 +36,17 @@ class OssServiceProvider extends ServiceProvider
 
             $cdnDomain = empty($config['cdnDomain']) ? '' : $config['cdnDomain'];
             $bucket    = $config['bucket'];
-            $ssl       = empty($config['ssl']) ? false : $config['ssl']; 
+            $ssl       = empty($config['ssl']) ? false : $config['ssl'];
+            if($cdnDomain) $cdnDomain = ($ssl ? 'https://' : 'http://') . $cdnDomain;
             $isCname   = empty($config['isCName']) ? false : $config['isCName'];
             $debug     = empty($config['debug']) ? false : $config['debug'];
             $region     = empty($config['region']) ? '' : $config['region'];
             $signatureVersion     = (empty($config['signatureVersion']) || OssClient::OSS_SIGNATURE_VERSION_V4!=$config['signatureVersion']) ? OssClient::OSS_SIGNATURE_VERSION_V1 : $config['signatureVersion'];
 
             $endPoint  = $config['endpoint']; // 默认作为外部节点
+            $endPoint = ($ssl ? 'https://' : 'http://') . $endPoint;
             $epInternal= $isCname?$cdnDomain:(empty($config['endpoint_internal']) ? $endPoint : $config['endpoint_internal']); // 内部节点
+            $epInternal = ($ssl ? 'https://' : 'http://') . $epInternal;
             
             if($debug) Log::debug('OSS config:', $config);
 
@@ -51,13 +54,14 @@ class OssServiceProvider extends ServiceProvider
             $provider = new StaticCredentialsProvider($accessId, $accessKey);
             $config = array(
                 "provider" => $provider,
-                "endpoint" => $endPoint,
+                "endpoint" => $epInternal,
                 "signatureVersion" => $signatureVersion,
                 "region" => $region,
+                "cname" => $isCname,
                 "is_cname" => $isCname,
-                "domain" => $cdnDomain,
-                "use_ssl" => $ssl,
-                "internal" => $epInternal
+                //"domain" => $cdnDomain,
+                //"use_ssl" => $ssl,
+                //"internal" => $epInternal
             );
             $client = new OssClient($config);
             /* 升级签名算法V4 end */

@@ -553,6 +553,20 @@ class OssAdapter extends AbstractAdapter
         return $res;
     }
 
+    /**
+     * @param $resource_url
+     *
+     * @return string
+     */
+    protected function removeSchemeUrl ($resource_url) {
+        if (strpos($resource_url, 'http://') === 0) {
+        $resource_url = substr($resource_url, strlen('http://'));
+        }
+        elseif (strpos($resource_url, 'https://') === 0) {
+        $resource_url = substr($resource_url, strlen('https://'));
+        }
+        return $resource_url;
+    }
 
     /**
      * @param $path
@@ -562,7 +576,23 @@ class OssAdapter extends AbstractAdapter
     public function getUrl( $path )
     {
         if (!$this->has($path)) throw new FileNotFoundException($filePath.' not found');
-        return ( $this->ssl ? 'https://' : 'http://' ) . ( $this->isCname ? ( $this->cdnDomain == '' ? $this->endPoint : $this->cdnDomain ) : $this->bucket . '.' . $this->endPoint ) . '/' . ltrim($path, '/');
+        $acl = $this->getObjectACL($path);
+        if($acl == OssClient::OSS_ACL_TYPE_PRIVATE){    //私有
+            return $this->getTemporaryUrl($path);
+        }
+        return $this->getPublicUrl($path);
+    }
+
+
+    /**
+     * @param $path
+     *
+     * @return string
+     */
+    public function getPublicUrl( $path )
+    {
+        //if (!$this->has($path)) throw new FileNotFoundException($filePath.' not found');
+        return ( $this->ssl ? 'https://' : 'http://' ) . ( $this->isCname ? ( $this->cdnDomain == '' ? $this->removeSchemeUrl($this->endPoint) : $this->removeSchemeUrl($this->cdnDomain) ) : $this->bucket . '.' . $this->removeSchemeUrl($this->endPoint) ) . '/' . ltrim($path, '/');
     }
 
     /**
@@ -572,7 +602,7 @@ class OssAdapter extends AbstractAdapter
      * @return string
      */
     public function getTemporaryUrl($path,$timeout=3600){
-        if (!$this->has($path)) throw new FileNotFoundException($filePath.' not found');
+        //if (!$this->has($path)) throw new FileNotFoundException($filePath.' not found');
         return $this->client->signUrl($this->bucket, $this->applyPathPrefix($path), $timeout);
     }
 
